@@ -6,8 +6,8 @@
     <title>WebGL Specification</title>
     <meta name="generator" content="BBEdit 9.1">
     <link rel="stylesheet" type="text/css" href="../../../resources/Khronos-WD.css" />
-    <script src="../../../resources/jquery-1.3.2.min.js" type="text/javascript"></script>
-    <script src="../../../resources/generateTOC.js" type="text/javascript"></script>
+    <script src="../../../resources/jquery-1.3.2.min.js" type="application/javascript"></script>
+    <script src="../../../resources/generateTOC.js" type="application/javascript"></script>
 </head>
 <body onload="generateTOC(document.getElementById('toc'))">
     <!--begin-logo-->
@@ -28,7 +28,7 @@
     <!--end-logo-->
 
     <h1>WebGL Specification</h1>
-    <h2 class="no-toc">Editor's Draft 27 April 2015</h2>
+    <h2 class="no-toc">Editor's Draft 4 March 2016</h2>
     <dl>
         <dt>This version:
             <dd>
@@ -219,11 +219,16 @@
 
           </ol>
 
-        <li> Set the attributes of <em>contextAttributes</em> based on the properties of the newly
+        <li> Create a new <code>WebGLContextAttributes</code> object, <em>actualAttributes</em>.
+
+        <li> Set the attributes of <em>actualAttributes</em> based on the properties of the newly
              created drawing buffer.
 
         <li> Set <em>context's</em> <a href="#context-creation-parameters">context creation
         parameters</a> to <em>contextAttributes</em>.
+
+        <li> Set <em>context's</em> <a href="#actual-context-parameters">actual context
+        parameters</a> to <em>actualAttributes</em>.
 
         <li> Return <em>context</em>.
 
@@ -498,14 +503,15 @@ gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
         <ul>
         <li> Image or video elements whose origin is not the same as the origin of the Document that
              contains the WebGLRenderingContext's canvas element
-        <li> Canvas elements whose <i>origin-clean</i> flag is set to false
+        <li> Canvas elements whose bitmap's <i>origin-clean</i> flag is set to false
+        <li> ImageBitmap objects whose bitmap's <i>origin-clean</i> flag is set to false
         </ul>
     </p>
     <p>
         If the <code>texImage2D</code> or <code>texSubImage2D</code> method is called with otherwise
         correct arguments and an <code>HTMLImageElement</code>, <code>HTMLVideoElement</code>,
-        or <code>HTMLCanvasElement</code> violating these restrictions, a <code>SECURITY_ERR</code>
-        exception must be thrown.
+        <code>HTMLCanvasElement</code>, or <code>ImageBitmap</code> violating these restrictions, a
+        <code>SECURITY_ERR</code> exception must be thrown.
     </p>
     <div class="note">
         <p>
@@ -1694,7 +1700,7 @@ interface <dfn id="WebGLRenderingContextBase">WebGLRenderingContextBase</dfn>
 
     any getVertexAttrib(GLuint index, GLenum pname);
 
-    [WebGLHandlesContextLoss] GLsizeiptr getVertexAttribOffset(GLuint index, GLenum pname);
+    [WebGLHandlesContextLoss] GLintptr getVertexAttribOffset(GLuint index, GLenum pname);
 
     void hint(GLenum target, GLenum mode);
     [WebGLHandlesContextLoss] GLboolean isBuffer(WebGLBuffer? buffer);
@@ -1726,14 +1732,15 @@ interface <dfn id="WebGLRenderingContextBase">WebGLRenderingContextBase</dfn>
     void stencilOp(GLenum fail, GLenum zfail, GLenum zpass);
     void stencilOpSeparate(GLenum face, GLenum fail, GLenum zfail, GLenum zpass);
 
-    typedef (ImageData or
+    typedef (ImageBitmap or
+             ImageData or
              HTMLImageElement or
              HTMLCanvasElement or
              HTMLVideoElement) TexImageSource;
-    void texImage2D(GLenum target, GLint level, GLenum internalformat,
+    void texImage2D(GLenum target, GLint level, GLint internalformat,
                     GLsizei width, GLsizei height, GLint border, GLenum format,
                     GLenum type, ArrayBufferView? pixels);
-    void texImage2D(GLenum target, GLint level, GLenum internalformat,
+    void texImage2D(GLenum target, GLint level, GLint internalformat,
                     GLenum format, GLenum type, TexImageSource? source); // May throw DOMException
 
     void texParameterf(GLenum target, GLenum pname, GLfloat param);
@@ -1787,17 +1794,14 @@ interface <dfn id="WebGLRenderingContextBase">WebGLRenderingContextBase</dfn>
     void validateProgram(WebGLProgram? program);
 
     void vertexAttrib1f(GLuint indx, GLfloat x);
-    void vertexAttrib1fv(GLuint indx, Float32Array values);
-    void vertexAttrib1fv(GLuint indx, sequence&lt;GLfloat&gt; values);
+    typedef (Float32Array or sequence&lt;GLfloat&gt;) VertexAttribFVSource;
+    void vertexAttrib1fv(GLuint indx, VertexAttribFVSource values);
     void vertexAttrib2f(GLuint indx, GLfloat x, GLfloat y);
-    void vertexAttrib2fv(GLuint indx, Float32Array values);
-    void vertexAttrib2fv(GLuint indx, sequence&lt;GLfloat&gt; values);
+    void vertexAttrib2fv(GLuint indx, VertexAttribFVSource values);
     void vertexAttrib3f(GLuint indx, GLfloat x, GLfloat y, GLfloat z);
-    void vertexAttrib3fv(GLuint indx, Float32Array values);
-    void vertexAttrib3fv(GLuint indx, sequence&lt;GLfloat&gt; values);
+    void vertexAttrib3fv(GLuint indx, VertexAttribFVSource values);
     void vertexAttrib4f(GLuint indx, GLfloat x, GLfloat y, GLfloat z, GLfloat w);
-    void vertexAttrib4fv(GLuint indx, Float32Array values);
-    void vertexAttrib4fv(GLuint indx, sequence&lt;GLfloat&gt; values);
+    void vertexAttrib4fv(GLuint indx, VertexAttribFVSource values);
     void vertexAttribPointer(GLuint indx, GLint size, GLenum type,
                              GLboolean normalized, GLsizei stride, GLintptr offset);
 
@@ -2027,9 +2031,9 @@ WebGLRenderingContext implements WebGLRenderingContextBase;
             <p>The following <em>pname</em> arguments return a string describing some aspect of the current WebGL implementation:</p>
             <table>
               <tr><td>VERSION</td>
-                  <td>Returns a version or release number of the form <code>WebGL&lt;space&gt;1.0&lt;space&gt;&lt;vendor-specific information&gt;</code>.</td></tr>
+                  <td>Returns a version or release number of the form <code>WebGL&lt;space&gt;1.0&lt;optional&gt;&lt;space&gt;&lt;vendor-specific information&gt;&lt;/optional&gt;</code>.</td></tr>
               <tr><td>SHADING_LANGUAGE_VERSION</td>
-                  <td>Returns a version or release number of the form <code>WebGL&lt;space&gt;GLSL&lt;space&gt;ES&lt;space&gt;1.0&lt;space&gt;&lt;vendor-specific information&gt;</code>.</td></tr>
+                  <td>Returns a version or release number of the form <code>WebGL&lt;space&gt;GLSL&lt;space&gt;ES&lt;space&gt;1.0&lt;optional&gt;&lt;space&gt;&lt;vendor-specific information&gt;&lt;/optional&gt;</code>.</td></tr>
               <tr><td>VENDOR</td>
                   <td>Returns the company responsible for this WebGL implementation. This name does not change from release to release.</td></tr>
               <tr><td>RENDERER</td>
@@ -2214,7 +2218,7 @@ WebGLRenderingContext implements WebGLRenderingContextBase;
             is bound and attempts to modify or query state on <code class="param">target</code> <code class="enum">FRAMEBUFFER</code>
             will generate an <code class="error">INVALID_OPERATION</code> error.
 
-        <dt class="idl-code">[WebGLHandlesContextLoss] GLenum checkFramebufferStatus(GLenum target)
+        <dt class="idl-code"><a name="CHECK_FRAMEBUFFER_STATUS">[WebGLHandlesContextLoss] GLenum checkFramebufferStatus</a>(GLenum target)
             <span class="gl-spec">(<a href="http://www.khronos.org/registry/gles/specs/2.0/es_full_spec_2.0.25.pdf#nameddest=section-4.4.5">OpenGL ES 2.0 &sect;4.4.5</a>, <a class="nonnormative" href="http://www.khronos.org/opengles/sdk/2.0/docs/man/xhtml/glCheckFramebufferStatus.xml">man page</a>)</span>
         <dd>
             Returns <code class="enum">FRAMEBUFFER_UNSUPPORTED</code> if the
@@ -2379,9 +2383,8 @@ WebGLRenderingContext implements WebGLRenderingContextBase;
             If an attempt is made to call this function with no WebGLTexture bound (see above), an
             <code>INVALID_OPERATION</code> error is generated. <br><br>
 
-            For any pixel lying outside the frame buffer, all channels of the associated texel are
-            initialized to 0; see <a href="#READS_OUTSIDE_FRAMEBUFFER">Reading Pixels Outside the
-            Framebuffer</a>. <br><br>
+            For any pixel lying outside the frame buffer, the corresponding destination pixel remains untouched;
+            see <a href="#READS_OUTSIDE_FRAMEBUFFER">Reading Pixels Outside the Framebuffer</a>. <br><br>
 
             If this function attempts to read from a complete framebuffer with a missing attachment,
             an <code>INVALID_OPERATION</code> error is generated
@@ -2428,7 +2431,7 @@ WebGLRenderingContext implements WebGLRenderingContextBase;
 
             Returns false if the texture's <a href="#webgl-object-invalidated-flag">invalidated
             flag</a> is set.
-        <dt class="idl-code"><a name="TEXIMAGE2D">void texImage2D</a>(GLenum target, GLint level, GLenum internalformat,
+        <dt class="idl-code"><a name="TEXIMAGE2D">void texImage2D</a>(GLenum target, GLint level, GLint internalformat,
                     GLsizei width, GLsizei height, GLint border, GLenum format,
                     GLenum type, ArrayBufferView? pixels)
             <span class="gl-spec">(<a href="http://www.khronos.org/registry/gles/specs/2.0/es_full_spec_2.0.25.pdf#nameddest=section-3.7.1">OpenGL ES 2.0 &sect;3.7.1</a>, <a class="nonnormative" href="http://www.khronos.org/opengles/sdk/2.0/docs/man/xhtml/glTexImage2D.xml">man page</a>)</span>
@@ -2446,8 +2449,11 @@ WebGLRenderingContext implements WebGLRenderingContextBase;
             <code>INVALID_OPERATION</code> error is generated. <br><br>
 
             See <a href="#PIXEL_STORAGE_PARAMETERS">Pixel Storage Parameters</a> for WebGL-specific
-            pixel storage parameters that affect the behavior of this function.
-        <dt><p class="idl-code"><a name="TEXIMAGE2D_HTML">void texImage2D</a>(GLenum target, GLint level, GLenum internalformat,
+            pixel storage parameters that affect the behavior of this function. <br><br>
+
+            If <code>pixels</code> is non-null but its size is less than what is required by the specified <em>width</em>, <em>height</em>, <em>format</em>, <em>type</em>, and pixel storage parameters, generates an <code>INVALID_OPERATION</code> error.
+
+        <dt><p class="idl-code"><a name="TEXIMAGE2D_HTML">void texImage2D</a>(GLenum target, GLint level, GLint internalformat,
                     GLenum format, GLenum type, TexImageSource? source) /* May throw DOMException */
             <span class="gl-spec">(<a href="http://www.khronos.org/registry/gles/specs/2.0/es_full_spec_2.0.25.pdf#nameddest=section-3.7.1">OpenGL ES 2.0 &sect;3.7.1</a>, <a class="nonnormative" href="http://www.khronos.org/opengles/sdk/2.0/docs/man/xhtml/glTexImage2D.xml">man page</a>)</span></p>
         <dd>
@@ -2461,15 +2467,21 @@ WebGLRenderingContext implements WebGLRenderingContextBase;
             the WebGL implementation. If a packed pixel format is specified which would imply loss
             of bits of precision from the image data, this loss of precision must occur. <br><br>
 
-            The first pixel transferred from the source to the WebGL implementation corresponds to
-            the upper left corner of the source. This behavior is modified by the
-            the <code>UNPACK_FLIP_Y_WEBGL</code> <a href="#PIXEL_STORAGE_PARAMETERS">pixel storage
-            parameter</a>. <br><br>
+            See <a href="#PIXEL_STORAGE_PARAMETERS">Pixel Storage Parameters</a> for WebGL-specific
+            pixel storage parameters that affect the behavior of this function when it is called
+            with any argument type other than <code>ImageBitmap</code>. <br><br>
 
-            If the source image is an RGB or RGBA lossless image with 8 bits per channel, the
-            browser guarantees that the full precision of all channels is preserved. <br><br>
+            The first pixel transferred from the source to the WebGL implementation corresponds
+            to the upper left corner of the source. This behavior is modified by the
+            <code>UNPACK_FLIP_Y_WEBGL</code> <a href="#PIXEL_STORAGE_PARAMETERS">pixel storage
+            parameter</a>, except for <code>ImageBitmap</code> arguments, as described in the
+            abovementioned section. <br><br>
 
-            If the original image contains an alpha channel and the
+            If the source is an <code>HTMLImageElement</code> or <code>ImageBitmap</code> containing
+            an RGB or RGBA lossless image with 8 bits per channel, the browser guarantees that the
+            full precision of all channels is preserved. <br><br>
+
+            If the original <code>HTMLImageElement</code> contains an alpha channel and the
             <code>UNPACK_PREMULTIPLY_ALPHA_WEBGL</code> pixel storage parameter is false, then the
             RGB values are guaranteed to never have been premultiplied by the alpha channel, whether
             those values are derived directly from the original file format or converted from some
@@ -2491,17 +2503,20 @@ WebGLRenderingContext implements WebGLRenderingContextBase;
             If an attempt is made to call this function with no WebGLTexture bound (see above), an
             <code>INVALID_OPERATION</code> error is generated. <br><br>
 
+            If this function is called with an <code>ImageData</code> whose <code>data</code>
+            attribute has been neutered, an <code>INVALID_VALUE</code> error is generated. <br><br>
+
+            If this function is called with an <code>ImageBitmap</code> that has been neutered,
+            an <code>INVALID_VALUE</code> error is generated. <br><br>
+
             If this function is called with an <code>HTMLImageElement</code>
             or <code>HTMLVideoElement</code> whose origin differs from the origin of the containing
-            Document, or with an <code>HTMLCanvasElement</code> whose <i>origin-clean</i> flag is
-            set to false, a <code>SECURITY_ERR</code> exception must be
-            thrown. See <a href="#ORIGIN_RESTRICTIONS">Origin Restrictions</a>.<br><br>
+            Document, or with an <code>HTMLCanvasElement</code> or <code>ImageBitmap</code> whose
+            bitmap's <i>origin-clean</i> flag is set to false, a <code>SECURITY_ERR</code> exception
+            must be thrown. See <a href="#ORIGIN_RESTRICTIONS">Origin Restrictions</a>.<br><br>
 
             If <code>source</code> is null then an <code>INVALID_VALUE</code> error is
             generated. <br><br>
-
-            See <a href="#PIXEL_STORAGE_PARAMETERS">Pixel Storage Parameters</a> for WebGL-specific
-            pixel storage parameters that affect the behavior of this function.
         <dt class="idl-code">void texParameterf(GLenum target, GLenum pname, GLfloat param)
             <span class="gl-spec">(<a href="http://www.khronos.org/registry/gles/specs/2.0/es_full_spec_2.0.25.pdf#nameddest=section-3.7.4">OpenGL ES 2.0 &sect;3.7.4</a>, <a class="nonnormative" href="http://www.khronos.org/opengles/sdk/2.0/docs/man/xhtml/glTexParameter.xml">man page</a>)</span>
         <dd>
@@ -2529,6 +2544,8 @@ WebGLRenderingContext implements WebGLRenderingContextBase;
             If <code>pixels</code> is null then an <code>INVALID_VALUE</code> error is
             generated. <br><br>
 
+            If <code>pixels</code> is non-null but its size is less than what is required by the specified <em>width</em>, <em>height</em>, <em>format</em>, <em>type</em>, and pixel storage parameters, generates an <code>INVALID_OPERATION</code> error. <br><br>
+
             See <a href="#PIXEL_STORAGE_PARAMETERS">Pixel Storage Parameters</a> for WebGL-specific
             pixel storage parameters that affect the behavior of this function.
         <dt><p class="idl-code"><a name="TEXSUBIMAGE2D_HTML">void texSubImage2D</a>(GLenum target, GLint level, GLint xoffset, GLint yoffset,
@@ -2545,10 +2562,15 @@ WebGLRenderingContext implements WebGLRenderingContextBase;
             the <em>format</em> and <em>type</em> arguments, and notes on
             the <code>UNPACK_PREMULTIPLY_ALPHA_WEBGL</code> pixel storage parameter. <br><br>
 
-            The first pixel transferred from the source to the WebGL implementation corresponds to
-            the upper left corner of the source. This behavior is modified by the
-            the <code>UNPACK_FLIP_Y_WEBGL</code> <a href="#PIXEL_STORAGE_PARAMETERS">pixel storage
-            parameter</a>. <br><br>
+            See <a href="#PIXEL_STORAGE_PARAMETERS">Pixel Storage Parameters</a> for WebGL-specific
+            pixel storage parameters that affect the behavior of this function when it is called
+            with any argument type other than <code>ImageBitmap</code>. <br><br>
+
+            The first pixel transferred from the source to the WebGL implementation corresponds
+            to the upper left corner of the source. This behavior is modified by the
+            <code>UNPACK_FLIP_Y_WEBGL</code> <a href="#PIXEL_STORAGE_PARAMETERS">pixel storage
+            parameter</a>, except for <code>ImageBitmap</code> arguments, as described in the
+            abovementioned section. <br><br>
 
             If an attempt is made to call this function with no WebGLTexture bound (see above), an
             <code>INVALID_OPERATION</code> error is generated. <br><br>
@@ -2556,17 +2578,20 @@ WebGLRenderingContext implements WebGLRenderingContextBase;
             If <em>type</em> does not match the type originally used to define the texture, an
             <code>INVALID_OPERATION</code> error is generated. <br><br>
 
+            If this function is called with an <code>ImageData</code> whose <code>data</code>
+            attribute has been neutered, an <code>INVALID_VALUE</code> error is generated. <br><br>
+
+            If this function is called with an <code>ImageBitmap</code> that has been neutered,
+            an <code>INVALID_VALUE</code> error is generated. <br><br>
+
             If this function is called with an <code>HTMLImageElement</code>
             or <code>HTMLVideoElement</code> whose origin differs from the origin of the containing
-            Document, or with an <code>HTMLCanvasElement</code> whose <i>origin-clean</i> flag is
-            set to false, a <code>SECURITY_ERR</code> exception must be
-            thrown. See <a href="#ORIGIN_RESTRICTIONS">Origin Restrictions</a>.<br><br>
+            Document, or with an <code>HTMLCanvasElement</code> or <code>ImageBitmap</code> whose
+            bitmap's <i>origin-clean</i> flag is set to false, a <code>SECURITY_ERR</code> exception
+            must be thrown. See <a href="#ORIGIN_RESTRICTIONS">Origin Restrictions</a>.<br><br>
 
             If <code>source</code> is null then an <code>INVALID_VALUE</code> error is
             generated. <br><br>
-
-            See <a href="#PIXEL_STORAGE_PARAMETERS">Pixel Storage Parameters</a> for WebGL-specific
-            pixel storage parameters that affect the behavior of this function.
     </dl>
 
 <!-- ======================================================================================================= -->
@@ -2679,13 +2704,16 @@ WebGLRenderingContext implements WebGLRenderingContextBase;
             <p>If <em>pname</em> is not in the table above, generates an <code>INVALID_ENUM</code> error and returns null.</p>
             <p>Returns null if any OpenGL errors are generated during the execution of this
             function.</p>
-        <dt class="idl-code">WebGLShaderPrecisionFormat getShaderPrecisionFormat(GLenum shadertype, GLenum precisiontype)
+        <dt class="idl-code">WebGLShaderPrecisionFormat? getShaderPrecisionFormat(GLenum shadertype, GLenum precisiontype)
             <span class="gl-spec">(<a href="http://www.khronos.org/registry/gles/specs/2.0/es_full_spec_2.0.25.pdf#nameddest=section-6.1.8">OpenGL ES 2.0 &sect;6.1.8</a>, similar to <a class="nonnormative" href="http://www.khronos.org/opengles/sdk/docs/man/xhtml/glGetShaderPrecisionFormat.xml">man page</a>)</span>
         <dd>
-            Return a new <code>WebGLShaderPrecisionFormat</code> describing the range and precision
+            <p>Return a new <code>WebGLShaderPrecisionFormat</code> describing the range and precision
             for the specified shader numeric format. The shadertype value can be FRAGMENT_SHADER or
             VERTEX_SHADER. The precisiontype value can be LOW_FLOAT, MEDIUM_FLOAT, HIGH_FLOAT,
-            LOW_INT, MEDIUM_INT or HIGH_INT.
+            LOW_INT, MEDIUM_INT or HIGH_INT.</p>
+
+            <p>Returns null if any OpenGL errors are generated during the execution of this
+            function.</p>
         <dt class="idl-code">DOMString? getShaderInfoLog(WebGLShader? shader)
             <span class="gl-spec">(<a href="http://www.khronos.org/registry/gles/specs/2.0/es_full_spec_2.0.25.pdf#nameddest=section-6.1.8">OpenGL ES 2.0 &sect;6.1.8</a>, <a class="nonnormative" href="http://www.khronos.org/opengles/sdk/2.0/docs/man/xhtml/glGetShaderInfoLog.xml">man page</a>)</span>
         <dd>
@@ -2990,8 +3018,9 @@ WebGLRenderingContext implements WebGLRenderingContextBase;
             error is generated.
             <br><br>
 
-            For any pixel lying outside the frame buffer, the value read contains 0 in all channels;
-            see <a href="#READS_OUTSIDE_FRAMEBUFFER">Reading Pixels Outside the Framebuffer</a>.
+            For any pixel lying outside the frame buffer, the corresponding destination buffer range
+            remains untouched; see <a href="#READS_OUTSIDE_FRAMEBUFFER">Reading Pixels Outside the
+            Framebuffer</a>.
             <br><br>
 
             If this function attempts to read from a complete framebuffer with a missing color
@@ -3551,13 +3580,20 @@ is <code>BROWSER_DEFAULT_WEBGL</code>.
 
 </dl>
 
+<p>
+If the <code>TexImageSource</code> is an <code>ImageBitmap</code>, then these three parameters will
+be ignored. Instead the equivalent
+<a href="https://html.spec.whatwg.org/multipage/webappapis.html#imagebitmapoptions">ImageBitmapOptions</a> should be used to
+create an <code>ImageBitmap</code> with the desired format.
+
 <h3><a name="READS_OUTSIDE_FRAMEBUFFER">Reading Pixels Outside the Framebuffer</a></h3>
 
 <p>
-In the WebGL API, functions which read the framebuffer
-(<code>copyTexImage2D</code>, <code>copyTexSubImage2D</code>, and <code>readPixels</code>) are
-defined to generate the RGBA value (0, 0, 0, 0) for any pixel which is outside of the bound
-framebuffer.
+In the WebGL API, three functions read the framebuffer: <code>copyTexImage2D</code>,
+<code>copyTexSubImage2D</code>, and <code>readPixels</code>. <code>copyTexImage2D</code> is defined to
+generate the RGBA value (0, 0, 0, 0) for any pixel outside of the bound framebuffer.
+<code>copyTexSubImage2D</code> and <code>readPixels</code> are defined not to touch the corresponding
+destination range for any pixel outside the bound framebuffer.
 </p>
 
 <h3><a name="STENCIL_SEPARATE_LIMIT">Stencil Separate Mask and Reference Value</a></h3>
@@ -3733,6 +3769,18 @@ extensions.
     <li> when counting varying variables: <code>getParameter(MAX_VARYING_VECTORS)</code>
     </ul>
 </p>
+<div class="note">
+    <p>
+        The text above defines the circumstances under which compilation or linking of a shader or
+        program must fail due to the constraints enforced by the packing algorithm. It is not
+        guaranteed that a shader which uses more variables than the minimum required amount whose
+        variables pack successfully according to this algorithm will compile successfully.
+        Inefficiencies have been observed in implementations, including expansion of scalar arrays
+        to consume multiple columns. Developers should avoid relying heavily upon automatic packing
+        of multiple variables into columns. Instead, define larger variables (like vec4) and
+        explicitly pack values into the rightmost columns.
+    </p>
+</div>
 
 <h3>Feedback Loops Between Textures and the Framebuffer</h3>
 <p>
@@ -3782,6 +3830,112 @@ extensions.
     gl_Position as undefined unless it is written to in a vertex shader. WebGL guarantees
     that gl_Position's initial value is <code>(0,0,0,0)</code>.
 </p>
+
+<h3>GLSL ES Global Variable Initialization</h3>
+<p>
+    The GLSL ES 1.00 <a href="#refsGLES20GLSL">[GLES20GLSL]</a> spec restricts global variable
+    initializers to be constant expressions. In the WebGL API, it is allowed to use other global
+    variables not qualified with the <code>const</code> qualifier and uniform values in global
+    variable initializers in GLSL ES 1.00 shaders. Global variable initializers must be global
+    initializer expressions, which are defined as one of:
+</p>
+<ul>
+<li>a literal value</li>
+<li>a global variable</li>
+<li>a uniform</li>
+<li>
+    an expression formed by an operator on operands that are global initializer expressions,
+    including getting an element of a global initializer vector or global initializer matrix,
+    or a field of a global initializer structure
+</li>
+<li>a constructor whose arguments are all global initializer expressions</li>
+<li>
+    a built-in function call whose arguments are all global initializer expressions, with the
+    exception of the texture lookup functions
+</li>
+</ul>
+<p>
+    The following may not be used in global initializer expressions:
+</p>
+<ul>
+<li>User-defined functions</li>
+<li>Attributes and varyings</li>
+<li>Global variables as l-values in an assignment or other operation</li>
+</ul>
+
+<p>
+    Compilers should generate a warning when a global variable initializer is in violation of the
+    unmodified GLSL ES spec i.e. when a global variable initializer is not a constant expression.
+</p>
+
+<div class="note rationale">
+    This behavior has existed in WebGL implementations for several years. Fixing this behavior to be
+    consistent with the GLSL ES specification would have a large compatibility impact with existing
+    content.
+</div>
+
+<h3><a name="PREPROCESSOR_DEFINED_IN_MACRO">GLSL ES Preprocessor "defined" Operator</a></h3>
+
+<p>
+    The C++ standard, which the GLSL ES preprocessor specification refers to, has undefined behavior
+    when the <code>defined</code> operator is generated by macro replacement when parsing the
+    controlling expression of an <code>#if</code> or <code>#elif</code> directive. When shader code
+    processed by the WebGL API generates the token <code>defined</code> during macro replacement
+    inside a preprocessor expression, that must result in a compiler error.
+</p>
+
+<p>
+    This has no effect on macro expansion outside preprocessor directives that handle the
+    <code>defined</code> operator.
+</p>
+
+<p>
+    Using <code>defined</code> as a macro name also has undefined behavior in the C++ standard. In
+    the WebGL API, using <code>defined</code> as a macro name must result in a compiler error.
+</p>
+
+<div class="note rationale">
+    Behavior of the WebGL API should be consistent in cases where the native API spec allows undefined
+    behavior.
+</div>
+
+<h3><a name="EXTENSION_DIRECTIVE_LOCATION">GLSL ES #extension directive location</a></h3>
+
+<p>
+    The GLSL ES 1.00 <a href="#refsGLES20GLSL">[GLES20GLSL]</a> specification mandates that
+    <code>#extension</code> directives must occur before any non-preprocessor tokens unless the
+    extension specification says otherwise. In the WebGL API, <code>#extension</code> directives
+    may always occur after non-preprocessor tokens in GLSL ES 1.00 shaders. The scope of
+    <code>#extension</code> directives in GLSL ES 1.00 shaders is always the whole shader, and
+    <code>#extension</code> directives that occur later override those seen earlier for the whole
+    shader.
+</p>
+
+<div class="note rationale">
+    Letting extensions determine where the <code>#extension</code> directives should be placed has
+    resulted in a lot of room for interpretation in the spec. In practice GLES implementations have
+    not enforced the rule that's written in the GLSL ES spec, and neither have WebGL
+    implementations, so relaxing the rule is the only way to make the spec well-defined while being
+    compatible with existing content.
+</div>
+
+<h3>Completeness of Cube Map Framebuffer Attachments</h3>
+
+<p>
+    In the WebGL API, a face of a cube map that is not cube complete is not framebuffer attachment
+    complete. Querying framebuffer status when a face of an incomplete cube map is attached must
+    return <code>FRAMEBUFFER_INCOMPLETE_ATTACHMENT</code>.
+</p>
+
+<div class="note rationale">
+    APIs that WebGL is implemented on, including recent OpenGL core
+    versions and OpenGL ES 3.0 and newer, have a requirement that cube
+    map faces used as a framebuffer attachment must be part of a cube
+    complete cube map. See for
+    example <a href="https://www.khronos.org/registry/gles/specs/3.0/es_spec_3.0.4.pdf#nameddest=section-4.4.4">OpenGL
+    ES 3.0.4 &sect;4.4.4</a> "Framebuffer Completeness", subsection
+    "Framebuffer Attachment Completeness".
+</div>
 
 <!-- ======================================================================================================= -->
 

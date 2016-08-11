@@ -83,7 +83,7 @@ goog.scope(function() {
                 wrap[i] = context[i];
               }
             } catch (e) {
-              throw new Error("GLContext: Error accessing " + i);
+              throw new Error('GLContext: Error accessing ' + i);
             }
         }
         if (viewport)
@@ -95,7 +95,7 @@ goog.scope(function() {
          * @param {sglrShaderProgram.ShaderProgram=} shader
          * @return {!WebGLProgram}
          */
-        var createProgram = function(shader) {
+        this.createProgram = function(shader) {
             var program = new gluShaderProgram.ShaderProgram(
                     context,
                     gluShaderProgram.makeVtxFragSources(
@@ -110,15 +110,16 @@ goog.scope(function() {
             }
             return program.getProgram();
         };
-        wrap['createProgram'] = createProgram;
+        wrap['createProgram'] = this.createProgram;
 
         /**
          * Draws quads from vertex arrays
+         * @param {number} primitive Primitive type
          * @param {number} first First vertex to begin drawing with
-         * @param {number} count How many quads to draw (array should provide first + (count * 6) vertices at least)
+         * @param {number} count Number of vertices
          */
-        var drawQuads = function(first, count) {
-            context.drawArrays(gl.TRIANGLES, first, (count * 6) - first);
+        var drawQuads = function(primitive, first, count) {
+            context.drawArrays(primitive, first, count);
         };
         wrap['drawQuads'] = drawQuads;
 
@@ -126,7 +127,7 @@ goog.scope(function() {
          * @return {number}
          */
         var getWidth = function() {
-            return context.getParameter(gl.VIEWPORT)[2];
+            return context.drawingBufferWidth;
         };
         wrap['getWidth'] = getWidth;
 
@@ -134,7 +135,7 @@ goog.scope(function() {
          * @return {number}
          */
         var getHeight = function() {
-            return context.getParameter(gl.VIEWPORT)[3];
+            return context.drawingBufferHeight;
         };
         wrap['getHeight'] = getHeight;
 
@@ -163,6 +164,14 @@ goog.scope(function() {
 
         return wrap;
     };
+
+    /**
+     * createProgram - This had to be added here as dummy to remove a warning when the only context used is GLContext (no reference context)
+     * @override
+     * @param {sglrShaderProgram.ShaderProgram=} shader
+     * @return {!WebGLProgram}
+     */
+    sglrGLContext.GLContext.prototype.createProgram = function(shader) {return this.createProgram();};
 
     /**
     * @param ctx GL-like context

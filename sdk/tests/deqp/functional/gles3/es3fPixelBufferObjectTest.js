@@ -87,18 +87,18 @@ var tcuImageCompare = framework.common.tcuImageCompare;
         if (this.m_framebuffeType === es3fPixelBufferObjectTest.FramebufferType.FRAMEBUFFERTYPE_NATIVE) {
             this.m_colorScale = 1.0;
         } else if (this.m_framebuffeType === es3fPixelBufferObjectTest.FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER) {
-            this.m_texChannelClass = tcuTextureUtil.getTextureChannelClass(gluTextureUtil.mapGLInternalFormat(spec.renderbufferFormat).type);
+            this.m_texChannelClass = tcuTexture.getTextureChannelClass(gluTextureUtil.mapGLInternalFormat(spec.renderbufferFormat).type);
             switch (this.m_texChannelClass) {
-                case tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT:
+                case tcuTexture.TextureChannelClass.UNSIGNED_FIXED_POINT:
                     this.m_colorScale = 1.0;
                     break;
-                case tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER:
+                case tcuTexture.TextureChannelClass.SIGNED_INTEGER:
                     this.m_colorScale = 100.0;
                     break;
-                case tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER:
+                case tcuTexture.TextureChannelClass.UNSIGNED_INTEGER:
                     this.m_colorScale = 100.0;
                     break;
-                case tcuTextureUtil.TextureChannelClass.FLOATING_POINT:
+                case tcuTexture.TextureChannelClass.FLOATING_POINT:
                     this.m_colorScale = 100.0;
                     break;
                 default:
@@ -119,16 +119,16 @@ var tcuImageCompare = framework.common.tcuImageCompare;
             outtype = 'vec4';
         else if (this.m_framebuffeType === es3fPixelBufferObjectTest.FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER) {
             switch (this.m_texChannelClass) {
-                case tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT:
+                case tcuTexture.TextureChannelClass.UNSIGNED_FIXED_POINT:
                     outtype = 'vec4';
                     break;
-                case tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER:
+                case tcuTexture.TextureChannelClass.SIGNED_INTEGER:
                     outtype = 'ivec4';
                     break;
-                case tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER:
+                case tcuTexture.TextureChannelClass.UNSIGNED_INTEGER:
                     outtype = 'uvec4';
                     break;
-                case tcuTextureUtil.TextureChannelClass.FLOATING_POINT:
+                case tcuTexture.TextureChannelClass.FLOATING_POINT:
                     outtype = 'vec4';
                     break;
                 default:
@@ -176,7 +176,7 @@ var tcuImageCompare = framework.common.tcuImageCompare;
      */
     es3fPixelBufferObjectTest.ReadPixelsTest.prototype.renderTriangle = function(a, b, c) {
 
-        var positions = [];
+        var positions = new Float32Array(36);
 
         positions[0] = a[0];
         positions[1] = a[1];
@@ -190,10 +190,10 @@ var tcuImageCompare = framework.common.tcuImageCompare;
         positions[7] = c[1];
         positions[8] = c[2];
 
-        var colors = [
+        var colors = new Float32Array([
             1.0, 0.0, 0.0, 1.0,
             0.0, 1.0, 0.0, 1.0,
-            0.0, 0.0, 1.0, 1.0];
+            0.0, 0.0, 1.0, 1.0]);
 
         gl.useProgram(this.m_program.getProgram());
         assertMsgOptions(gl.getError() === gl.NO_ERROR, 'useProgram failed ', false, true);
@@ -214,8 +214,15 @@ var tcuImageCompare = framework.common.tcuImageCompare;
         gl.enableVertexAttribArray(coordLoc);
         assertMsgOptions(gl.getError() === gl.NO_ERROR, 'enableVertexAttribArray failed ', false, true);
 
-        gl.vertexAttribPointer(coordLoc, 3, gl.FLOAT, false, 0, positions[0]);
-        gl.vertexAttribPointer(colorLoc, 4, gl.FLOAT, false, 0, colors[0]);
+        var pos = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, pos);
+        gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+        gl.vertexAttribPointer(coordLoc, 3, gl.FLOAT, false, 0, 0);
+
+        var c = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, c);
+        gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
+        gl.vertexAttribPointer(colorLoc, 4, gl.FLOAT, false, 0, 0);
 
         gl.drawArrays(gl.TRIANGLES, 0, 3);
 
@@ -236,17 +243,17 @@ var tcuImageCompare = framework.common.tcuImageCompare;
             gl.clear(gl.COLOR_BUFFER_BIT);
         } else if (this.m_framebuffeType == es3fPixelBufferObjectTest.FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER) {
             switch (this.m_texChannelClass) {
-                case tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT:
+                case tcuTexture.TextureChannelClass.UNSIGNED_FIXED_POINT:
                     gl.clearColor(r, g, b, a);
                     gl.clear(gl.COLOR_BUFFER_BIT);
                     break;
-                case tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER:
+                case tcuTexture.TextureChannelClass.SIGNED_INTEGER:
                     gl.clearBufferiv(gl.COLOR, 0, new Int32Array([r, g, b, a]));
                     break;
-                case tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER:
+                case tcuTexture.TextureChannelClass.UNSIGNED_INTEGER:
                     gl.clearBufferuiv(gl.COLOR, 0, new Uint32Array([r, g, b, a]));
                     break;
-                case tcuTextureUtil.TextureChannelClass.FLOATING_POINT:
+                case tcuTexture.TextureChannelClass.FLOATING_POINT:
                     gl.clearBufferfv(gl.COLOR, 0, new Float32Array([r, g, b, a]));
                     break;
                 default:
@@ -346,25 +353,25 @@ var tcuImageCompare = framework.common.tcuImageCompare;
             floatCompare = false;
         } else if (this.m_framebuffeType == es3fPixelBufferObjectTest.FramebufferType.FRAMEBUFFERTYPE_RENDERBUFFER) {
             switch (this.m_texChannelClass) {
-                case tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT:
-                    readFormat = gluTextureUtil.mapGLTransferFormat(gl.RGBA_INTEGER, gl.INT);
-                    readPixelsFormat = gl.RGBA_INTEGER;
-                    readPixelsType = gl.INT;
+                case tcuTexture.TextureChannelClass.UNSIGNED_FIXED_POINT:
+                    readFormat = gluTextureUtil.mapGLTransferFormat(gl.RGBA, gl.UNSIGNED_BYTE);
+                    readPixelsFormat = gl.RGBA;
+                    readPixelsType = gl.UNSIGNED_BYTE;
                     floatCompare = true;
                     break;
-                case tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER:
+                case tcuTexture.TextureChannelClass.SIGNED_INTEGER:
                     readFormat = gluTextureUtil.mapGLTransferFormat(gl.RGBA_INTEGER, gl.INT);
                     readPixelsFormat = gl.RGBA_INTEGER;
                     readPixelsType = gl.INT;
                     floatCompare = false;
                     break;
-                case tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER:
+                case tcuTexture.TextureChannelClass.UNSIGNED_INTEGER:
                     readFormat = gluTextureUtil.mapGLTransferFormat(gl.RGBA_INTEGER, gl.UNSIGNED_INT);
                     readPixelsFormat = gl.RGBA_INTEGER;
                     readPixelsType = gl.UNSIGNED_INT;
                     floatCompare = false;
                     break;
-                case tcuTextureUtil.TextureChannelClass.FLOATING_POINT:
+                case tcuTexture.TextureChannelClass.FLOATING_POINT:
                     readFormat = gluTextureUtil.mapGLTransferFormat(gl.RGBA, gl.FLOAT);
                     readPixelsFormat = gl.RGBA;
                     readPixelsType = gl.FLOAT;
@@ -394,7 +401,7 @@ var tcuImageCompare = framework.common.tcuImageCompare;
 
         gl.bindBuffer(gl.PIXEL_PACK_BUFFER, pixelBuffer);
         gl.bufferData(gl.PIXEL_PACK_BUFFER, readReference.getLevel(0).getDataSize(), gl.STREAM_READ);
-        gl.readPixels(0, 0, width, height, readPixelsFormat, readPixelsType, null);
+        gl.readPixels(0, 0, width, height, readPixelsFormat, readPixelsType, 0);
 
         var bufferData = new ArrayBuffer(readReference.getLevel(0).getDataSize());
 
@@ -511,12 +518,13 @@ var tcuImageCompare = framework.common.tcuImageCompare;
             'rg16i',
             'rg16ui',
             'rg32i',
-            'rg32ui'];
+            'rg32ui'
+        ];
         es3fPixelBufferObjectTest.DE_STATIC_ASSERT(renderbufferFormatsStr.length == renderbufferFormats.length);
 
         for (var formatNdx = 0; formatNdx < renderbufferFormats.length; formatNdx++) {
             for (var trianglesClears = 0; trianglesClears < 2; trianglesClears++) {
-                var nameDescription = renderbufferFormatsStr[formatNdx] + '_' + trianglesClears == 0 ? 'triangles' : 'clears';
+                var nameDescription = renderbufferFormatsStr[formatNdx] + '_' + (trianglesClears == 0 ? 'triangles' : 'clears');
                 var testSpec = new es3fPixelBufferObjectTest.TestSpec();
                 testSpec.name = nameDescription;
                 testSpec.description = nameDescription;

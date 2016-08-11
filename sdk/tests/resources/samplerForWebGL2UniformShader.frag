@@ -24,10 +24,11 @@
 */
 
 precision mediump float;
-uniform sampler3D s3D;
-uniform sampler2DArray s2DArray;
+uniform mediump sampler3D s3D;
+uniform mediump sampler2DArray s2DArray;
+out vec4 fragColor;
 void main()
 {
-    gl_FragColor = texture(s3D, vec3(0.5, 0.5, 0.5)) +
-                   texture(s2DArray, vec3(0.5, 0.5, 0.5));
+  fragColor = texture(s3D, vec3(0.5, 0.5, 0.5)) +
+      texture(s2DArray, vec3(0.5, 0.5, 0.5));
 }

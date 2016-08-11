@@ -239,7 +239,7 @@ goog.scope(function() {
             deMath.clamp(Math.max(this.m_dstRect[0], this.m_dstRect[2]), 0, result.getWidth()),
             deMath.clamp(Math.max(this.m_dstRect[1], this.m_dstRect[3]), 0, result.getHeight())];
 
-        /** @const {tcuRGBA.RGBA} */ var baseColor = result.getPixel(destinationArea[0], destinationArea[1]);
+        /** @const {tcuRGBA.RGBA} */ var baseColor = new tcuRGBA.RGBA(result.getPixel(destinationArea[0], destinationArea[1]));
 
         /** @const {boolean} */ var signConfig = tcuRGBA.compareThreshold(baseColor, cellColorA, threshold);
 
@@ -266,7 +266,7 @@ goog.scope(function() {
 
         for (var dy = 0; dy < destinationArea[3] - destinationArea[1]; ++dy) {
             for (var dx = 0; dx < destinationArea[2] - destinationArea[0]; ++dx) {
-                color = result.getPixel(destinationArea[0] + dx, destinationArea[1] + dy);
+                color = new tcuRGBA.RGBA(result.getPixel(destinationArea[0] + dx, destinationArea[1] + dy));
 
                 /** @const {boolean} */
                 var isValidColor =
@@ -297,7 +297,7 @@ goog.scope(function() {
         // Blitting a grid should result in a grid-like image. ('sign changes' should be consistent)
 
         for (var dx = 0; dx < destinationArea[2] - destinationArea[0]; ++dx) {
-            color = result.getPixel(destinationArea[0] + dx, destinationArea[1]);
+            color = new tcuRGBA.RGBA(result.getPixel(destinationArea[0] + dx, destinationArea[1]));
             if (tcuRGBA.compareThreshold(color, cellColorA, threshold))
                 horisontalSign[dx] = true;
             else if (tcuRGBA.compareThreshold(color, cellColorB, threshold))
@@ -306,7 +306,7 @@ goog.scope(function() {
                 DE_ASSERT(false);
         }
         for (var dy = 0; dy < destinationArea[3] - destinationArea[1]; ++dy) {
-            color = result.getPixel(destinationArea[0], destinationArea[1] + dy);
+            color = new tcuRGBA.RGBA(result.getPixel(destinationArea[0], destinationArea[1] + dy));
 
             if (tcuRGBA.compareThreshold(color, cellColorA, threshold))
                 verticalSign[dy] = true;
@@ -320,7 +320,7 @@ goog.scope(function() {
 
         for (var dy = 0; dy < destinationArea[3] - destinationArea[1]; ++dy) {
             for (var dx = 0; dx < destinationArea[2] - destinationArea[0]; ++dx) {
-                color = result.getPixel(destinationArea[0] + dx, destinationArea[1] + dy);
+                color = new tcuRGBA.RGBA(result.getPixel(destinationArea[0] + dx, destinationArea[1] + dy));
                 /** @const {boolean} */ var resultSign = tcuRGBA.compareThreshold(cellColorA, color, threshold);
                 /** @const {boolean} */ var correctSign = (horisontalSign[dx] == verticalSign[dy]) == signConfig;
 
@@ -513,15 +513,15 @@ goog.scope(function() {
             for (var dstFmtNdx = 0; dstFmtNdx < colorFormats.length; dstFmtNdx++) {
                 /** @type {number} */ var srcFormat = colorFormats[srcFmtNdx];
                 /** @type {tcuTexture.TextureFormat} */ var srcTexFmt = gluTextureUtil.mapGLInternalFormat(srcFormat);
-                /** @type {tcuTextureUtil.TextureChannelClass} */ var srcType = tcuTextureUtil.getTextureChannelClass(srcTexFmt.type);
+                /** @type {tcuTexture.TextureChannelClass} */ var srcType = tcuTexture.getTextureChannelClass(srcTexFmt.type);
                 /** @type {number} */ var dstFormat = colorFormats[dstFmtNdx];
                 /** @type {tcuTexture.TextureFormat} */ var dstTexFmt = gluTextureUtil.mapGLInternalFormat(dstFormat);
-                /** @type {tcuTextureUtil.TextureChannelClass} */ var dstType = tcuTextureUtil.getTextureChannelClass(dstTexFmt.type);
+                /** @type {tcuTexture.TextureChannelClass} */ var dstType = tcuTexture.getTextureChannelClass(dstTexFmt.type);
 
-                if (((srcType == tcuTextureUtil.TextureChannelClass.FLOATING_POINT || srcType == tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT) !=
-                     (dstType == tcuTextureUtil.TextureChannelClass.FLOATING_POINT || dstType == tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT)) ||
-                    ((srcType == tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER) != (dstType == tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER)) ||
-                    ((srcType == tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER) != (dstType == tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER)))
+                if (((srcType == tcuTexture.TextureChannelClass.FLOATING_POINT || srcType == tcuTexture.TextureChannelClass.UNSIGNED_FIXED_POINT) !=
+                     (dstType == tcuTexture.TextureChannelClass.FLOATING_POINT || dstType == tcuTexture.TextureChannelClass.UNSIGNED_FIXED_POINT)) ||
+                    ((srcType == tcuTexture.TextureChannelClass.SIGNED_INTEGER) != (dstType == tcuTexture.TextureChannelClass.SIGNED_INTEGER)) ||
+                    ((srcType == tcuTexture.TextureChannelClass.UNSIGNED_INTEGER) != (dstType == tcuTexture.TextureChannelClass.UNSIGNED_INTEGER)))
                     continue; // Conversion not supported.
 
                 var name = es3fFboTestUtil.getFormatName(srcFormat) + '_to_' + es3fFboTestUtil.getFormatName(dstFormat);
@@ -573,13 +573,13 @@ goog.scope(function() {
         for (var fmtNdx = 0; fmtNdx < colorFormats.length; fmtNdx++) {
             var format = colorFormats[fmtNdx];
             var texFmt = gluTextureUtil.mapGLInternalFormat(format);
-            var fmtClass = tcuTextureUtil.getTextureChannelClass(texFmt.type);
+            var fmtClass = tcuTexture.getTextureChannelClass(texFmt.type);
             var filter = gluTextureUtil.isGLInternalColorFormatFilterable(format) ? gl.LINEAR : gl.NEAREST;
             var filterable = gluTextureUtil.isGLInternalColorFormatFilterable(format);
 
-            if (fmtClass != tcuTextureUtil.TextureChannelClass.FLOATING_POINT &&
-                fmtClass != tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT &&
-                fmtClass != tcuTextureUtil.TextureChannelClass.SIGNED_FIXED_POINT)
+            if (fmtClass != tcuTexture.TextureChannelClass.FLOATING_POINT &&
+                fmtClass != tcuTexture.TextureChannelClass.UNSIGNED_FIXED_POINT &&
+                fmtClass != tcuTexture.TextureChannelClass.SIGNED_FIXED_POINT)
                 continue; // Conversion not supported.
 
             defaultFbGroup.addChild(new es3fFramebufferBlitTests.BlitDefaultFramebufferCase(es3fFboTestUtil.getFormatName(format), '', format, filter));
@@ -1115,10 +1115,10 @@ goog.scope(function() {
         // TOOD: implement
         /** @type {tcuTexture.TextureFormat} */ var colorFormat = gluTextureUtil.mapGLInternalFormat(this.m_format);
         /** @type {gluTextureUtil.TransferFormat} */ var transferFmt = gluTextureUtil.getTransferFormat(colorFormat);
-        /** @const {tcuTextureUtil.TextureChannelClass} */
+        /** @const {tcuTexture.TextureChannelClass} */
         var targetClass = (this.m_blitDir == es3fFramebufferBlitTests.BlitDirection.BLIT_DEFAULT_TO_TARGET) ?
-            (tcuTextureUtil.getTextureChannelClass(colorFormat.type)) :
-            (tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT);
+            (tcuTexture.getTextureChannelClass(colorFormat.type)) :
+            (tcuTexture.TextureChannelClass.UNSIGNED_FIXED_POINT);
 
         var fbo;
         var fboTex;
@@ -1192,13 +1192,13 @@ goog.scope(function() {
         ctx.bindFramebuffer(gl.DRAW_FRAMEBUFFER, targetFbo);
         this.checkError();
 
-        if (targetClass == tcuTextureUtil.TextureChannelClass.SIGNED_FIXED_POINT ||
-            targetClass == tcuTextureUtil.TextureChannelClass.UNSIGNED_FIXED_POINT ||
-            targetClass == tcuTextureUtil.TextureChannelClass.FLOATING_POINT)
+        if (targetClass == tcuTexture.TextureChannelClass.SIGNED_FIXED_POINT ||
+            targetClass == tcuTexture.TextureChannelClass.UNSIGNED_FIXED_POINT ||
+            targetClass == tcuTexture.TextureChannelClass.FLOATING_POINT)
             ctx.clearBufferfv(gl.COLOR, 0, [1.0, 1.0, 0.0, 1.0]);
-        else if (targetClass == tcuTextureUtil.TextureChannelClass.SIGNED_INTEGER)
+        else if (targetClass == tcuTexture.TextureChannelClass.SIGNED_INTEGER)
             ctx.clearBufferiv(gl.COLOR, 0, [0, 0, 0, 0]);
-        else if (targetClass == tcuTextureUtil.TextureChannelClass.UNSIGNED_INTEGER)
+        else if (targetClass == tcuTexture.TextureChannelClass.UNSIGNED_INTEGER)
             ctx.clearBufferuiv(gl.COLOR, 0, [0, 0, 0, 0]);
         else
             DE_ASSERT(false);

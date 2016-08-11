@@ -28,8 +28,8 @@
 <head>
 <meta charset="utf-8">
 <link rel="stylesheet" href="../../resources/js-test-style.css"/>
-<script src="../../resources/js-test-pre.js"></script>
-<script src="../../resources/webgl-test-utils.js"></script>
+<script src="../../js/js-test-pre.js"></script>
+<script src="../../js/webgl-test-utils.js"></script>
 <title>WebGL Object Expandos Conformance Test</title>
 </head>
 <body>
@@ -130,10 +130,10 @@ function testBasicBindings() {
 function testProgramsAndShaders() {
     debug('Programs and Shaders');
 
-    var vs = wtu.setupSimpleColorVertexShader(gl);
+    var vs = wtu.loadShader(gl, wtu.simpleVertexShader, gl.VERTEX_SHADER);
     setTestExpandos(vs);
 
-    var fs = wtu.setupSimpleColorFragmentShader(gl);
+    var fs = wtu.loadShader(gl, wtu.simpleColorFragmentShader, gl.FRAGMENT_SHADER);
     setTestExpandos(fs);
 
     var program = wtu.setupProgram(gl, [vs, fs]);
@@ -201,13 +201,15 @@ function testFrameBufferAttachments() {
     var attachments = [
         { enum: gl.COLOR_ATTACHMENT0,       name: "COLOR_ATTACHMENT0" },
         { enum: gl.DEPTH_ATTACHMENT,        name: "DEPTH_ATTACHMENT" },
-        { enum: gl.DEPTH_STENCIL_ATTACHMENT,name: "DEPTH_STENCIL_ATTACHMENT" },
         { enum: gl.STENCIL_ATTACHMENT,      name: "STENCIL_ATTACHMENT" },
+        { enum: gl.DEPTH_STENCIL_ATTACHMENT,name: "DEPTH_STENCIL_ATTACHMENT" },
     ];
 
     // Attach a renderbuffer to all attachment points.
     attachments.forEach(function(attachment) {
         var renderbuffer = gl.createRenderbuffer();
+        gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
+        gl.bindRenderbuffer(gl.RENDERBUFFER, null);
         setTestExpandos(renderbuffer);
         gl.framebufferRenderbuffer(gl.FRAMEBUFFER, attachment.enum, gl.RENDERBUFFER, renderbuffer);
         assertMsg(renderbuffer === gl.getFramebufferAttachmentParameter(gl.FRAMEBUFFER, attachment.enum, gl.FRAMEBUFFER_ATTACHMENT_OBJECT_NAME),
@@ -236,6 +238,6 @@ testFrameBufferAttachments();
 
 var successfullyParsed = true;
 </script>
-<script src="../../resources/js-test-post.js"></script>
+<script src="../../js/js-test-post.js"></script>
 </body>
 </html>

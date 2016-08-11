@@ -31,9 +31,9 @@
 <meta charset="utf-8">
 <title>Bug - indexing with 'int()' should not crash</title>
 <link rel="stylesheet" href="../../../resources/js-test-style.css"/>
-<script src="../../../resources/js-test-pre.js"></script>
-<script src="../../../resources/webgl-test-utils.js"></script>
-<script src="../../../resources/glsl-conformance-test.js"></script>
+<script src="../../../js/js-test-pre.js"></script>
+<script src="../../../js/webgl-test-utils.js"></script>
+<script src="../../../js/glsl-conformance-test.js"></script>
 </head>
 <body>
 <canvas id="example" width="40" height="40"> </canvas>
@@ -52,7 +52,7 @@ uniform float uniformArray[4];
 void main()
 {
   vec4 tempVec = vec4(0.0);
-  vec4 tempMat = mat4(0.0);
+  mat4 tempMat = mat4(0.0);
   float tempArray[4];
   gl_FragColor = vec4($(indexed)[int()]);
 }
